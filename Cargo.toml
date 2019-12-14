@@ -1,0 +1,13 @@
+[package]
+name = "namecheap-ddns"
+version = "0.1.0"
+authors = ["Jeremy Nicklas <jeremywnicklas@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = "2"
+reqwest = { version = "0.9", default-features = false, features = ["rustls-tls"] }
+serde = { version = "1", features = ["derive"] }
+quick-xml = { version = "0.17", features = ["serialize"] }
