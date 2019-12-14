@@ -1,8 +1,14 @@
 [package]
 name = "namecheap-ddns"
+description = "A CLI used to update the A + Dynamic DNS records for Namecheap"
 version = "0.1.0"
 authors = ["Jeremy Nicklas <jeremywnicklas@gmail.com>"]
 edition = "2018"
+license = "MIT"
+keywords = ["namecheap", "ddns"]
+homepage = "https://github.com/nickjer/namecheap-ddns"
+repository = "https://github.com/nickjer/namecheap-ddns"
+readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
