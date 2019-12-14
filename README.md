@@ -1,6 +1,6 @@
 # Namecheap DDNS
 
-![Continuous Integration Status](https://github.com/nickjer/namecheap-ddns/workflows/Continuous%20integration/badge.svg)
+[![Continuous Integration Status](https://github.com/nickjer/namecheap-ddns/workflows/Continuous%20integration/badge.svg)](https://github.com/nickjer/namecheap-ddns/actions)
 
 A command line interface (CLI) used to update the A + Dynamic DNS records for
 Namecheap.
