@@ -1,5 +1,7 @@
 # Namecheap DDNS
 
+![Continuous Integration Status](https://github.com/nickjer/namecheap-ddns/workflows/Continuous%20integration/badge.svg)
+
 A command line interface (CLI) used to update the A + Dynamic DNS records for
 Namecheap.
 
@@ -75,3 +77,5 @@ $ source .env
 $ namecheap-ddns
 host1.example.com IP address updated to: 321.321.321.321
 ```
+
+[cargo]: https://doc.rust-lang.org/cargo/
