@@ -37,7 +37,7 @@ jobs:
           toolchain: stable
           target: ${{ matrix.target }}
           override: true
-          components: rustfmt, clippy
+          components: rustfmt
       - name: Cargo build
         uses: actions-rs/cargo@v1
         with:
@@ -48,19 +48,13 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           use-cross: true
-          command: test
+          command: test --target ${{ matrix.target }}
       - name: Cargo fmt
         uses: actions-rs/cargo@v1
         with:
           use-cross: true
           command: fmt
-          args: --all -- --check
-      - name: Cargo clippy
-        uses: actions-rs/cargo@v1
-        with:
-          use-cross: true
-          command: clippy
-          args: -- -D warnings
+          args: --all --target ${{ matrix.target }} -- --check
       - name: Upload artifact
         uses: actions/upload-artifact@v1
         with:
