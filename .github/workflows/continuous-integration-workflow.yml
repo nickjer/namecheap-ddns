@@ -47,19 +47,22 @@ jobs:
       - name: Cargo test
         uses: actions-rs/cargo@v1
         with:
+          use-cross: true
           command: test
       - name: Cargo fmt
         uses: actions-rs/cargo@v1
         with:
+          use-cross: true
           command: fmt
           args: --all -- --check
       - name: Cargo clippy
         uses: actions-rs/cargo@v1
         with:
+          use-cross: true
           command: clippy
           args: -- -D warnings
       - name: Upload artifact
         uses: actions/upload-artifact@v1
         with:
           name: namecheap-ddns
-          path: namecheap-ddns-${{ github.sha }}-${{ matrix.target }}
+          path: target/${{ matrix.target }}/debug/namecheap-ddns
