@@ -38,3 +38,12 @@ jobs:
         with:
           command: clippy
           args: -- -D warnings
+      - name: Compress artifact
+        run: >-
+          tar czf namecheap-ddns.tar.gz
+            target/${{ matrix.target }}/release/namecheap-ddns
+      - name: Upload artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: namecheap-ddns-${{ github.ref }}-${{ matrix.target }}.tar.gz
+          path: namecheap-ddns.tar.gz
