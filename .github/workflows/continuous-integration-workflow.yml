@@ -1,3 +1,4 @@
+---
 name: Continuous integration
 on: [push, pull_request]
 
@@ -11,13 +12,33 @@ jobs:
           - x86_64-unknown-linux-musl
     steps:
       - uses: actions/checkout@v1
+      - name: Cache cargo registry
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-${{ matrix.target }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo index
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-${{ matrix.target }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo bin
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/bin
+          key: ${{ runner.os }}-${{ matrix.target }}-cargo-bin-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo build
+        uses: actions/cache@v1
+        with:
+          path: target
+          key: ${{ runner.os }}-${{ matrix.target }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           target: ${{ matrix.target }}
           override: true
-          components: rustfmt, clippy
+          components: rustfmt
       - name: Cargo build
         uses: actions-rs/cargo@v1
         with:
@@ -27,14 +48,19 @@ jobs:
       - name: Cargo test
         uses: actions-rs/cargo@v1
         with:
+          use-cross: true
           command: test
+          args: --target ${{ matrix.target }}
       - name: Cargo fmt
         uses: actions-rs/cargo@v1
         with:
+          use-cross: true
           command: fmt
           args: --all -- --check
-      - name: Cargo clippy
-        uses: actions-rs/cargo@v1
+      - name: Rename binary
+        run: mv target/${{ matrix.target }}/debug/namecheap-ddns namecheap-ddns-${{ github.sha }}-${{ matrix.target }}
+      - name: Upload artifact
+        uses: actions/upload-artifact@v1
         with:
-          command: clippy
-          args: -- -D warnings
+          name: namecheap-ddns
+          path: namecheap-ddns-${{ github.sha }}-${{ matrix.target }}
