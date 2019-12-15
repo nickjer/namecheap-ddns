@@ -56,8 +56,10 @@ jobs:
           use-cross: true
           command: fmt
           args: --all -- --check
+      - name: Rename binary
+        run: mv target/${{ matrix.target }}/debug/namecheap-ddns namecheap-ddns-${{ github.sha }}-${{ matrix.target }}
       - name: Upload artifact
         uses: actions/upload-artifact@v1
         with:
           name: namecheap-ddns
-          path: target/${{ matrix.target }}/debug/namecheap-ddns
+          path: namecheap-ddns-${{ github.sha }}-${{ matrix.target }}
