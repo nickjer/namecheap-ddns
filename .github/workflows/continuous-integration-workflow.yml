@@ -15,17 +15,22 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/.cargo/registry
-          key: ${{ matrix.target }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-${{ matrix.target }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
       - name: Cache cargo index
         uses: actions/cache@v1
         with:
           path: ~/.cargo/git
-          key: ${{ matrix.target }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-${{ matrix.target }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo bin
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/bin
+          key: ${{ runner.os }}-${{ matrix.target }}-cargo-bin-${{ hashFiles('**/Cargo.lock') }}
       - name: Cache cargo build
         uses: actions/cache@v1
         with:
           path: target
-          key: ${{ matrix.target }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-${{ matrix.target }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -54,7 +59,7 @@ jobs:
           command: clippy
           args: -- -D warnings
       - name: Compress artifact
-        run: tar czf namecheap-ddns-${{ github.ref }}-${{ matrix.target }}.tar.gz target/${{ matrix.target }}/debug/namecheap-ddns
+        run: tar czf namecheap-ddns-${{ github.sha }}-${{ matrix.target }}.tar.gz target/${{ matrix.target }}/debug/namecheap-ddns
       - name: Upload artifact
         uses: actions/upload-artifact@v1
         with:
