@@ -38,10 +38,10 @@ jobs:
         with:
           command: clippy
           args: -- -D warnings
+      - name: List files
+        run: ls -al target && ls -al target/${{ matrix.target }} && ls -al target/${{ matrix.target }}/release
       - name: Compress artifact
-        run: >-
-          tar czf namecheap-ddns.tar.gz
-            target/${{ matrix.target }}/release/namecheap-ddns
+        run: tar czf namecheap-ddns.tar.gz target/${{ matrix.target }}/release/namecheap-ddns
       - name: Upload artifact
         uses: actions/upload-artifact@v1
         with:
