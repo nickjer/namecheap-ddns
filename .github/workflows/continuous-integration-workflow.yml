@@ -55,7 +55,7 @@ jobs:
         with:
           use-cross: true
           command: fmt
-          args: --all --target ${{ matrix.target }} -- --check
+          args: --all -- --check
       - name: Upload artifact
         uses: actions/upload-artifact@v1
         with:
