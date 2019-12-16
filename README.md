@@ -85,7 +85,7 @@ and corresponding timer.
 
 1. Create the service itself that updates your subdomains:
 
-   ```
+   ```desktop
    # /etc/systemd/system/ddns-update.service
 
    [Unit]
@@ -116,7 +116,7 @@ and corresponding timer.
 
 3. Create the timer that runs this service:
 
-   ```
+   ```desktop
    # /etc/systemd/system/ddns-update.timer
 
    [Unit]
