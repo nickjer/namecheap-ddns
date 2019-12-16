@@ -78,4 +78,71 @@ $ namecheap-ddns
 host1.example.com IP address updated to: 321.321.321.321
 ```
 
+## Linux - systemd
+
+If you want to set this up as a service you will need to create a service file
+and corresponding timer.
+
+1. Create the service itself that updates your subdomains:
+
+   ```
+   # /etc/systemd/system/ddns-update.service
+
+   [Unit]
+   Description=Update DDNS records for Namecheap
+   After=network-online.target
+
+   [Service]
+   Type=simple
+   Environment=NAMECHEAP_DDNS_TOKEN=<TOKEN>
+   Environment=NAMECHEAP_DDNS_DOMAIN=<DOMAIN>
+   Environment=NAMECHEAP_DDNS_SUBDOMAIN=<SUBDOMAIN>
+   ExecStart=/path/to/namecheap-ddns
+   User=<USER>
+
+   [Install]
+   WantedBy=default.target
+   ```
+
+   Be sure to fill in the correct path to your binary as well as the
+   environment variables.
+
+2. Note that the super secret token is in this file, so we should set
+   restrictive permissions:
+
+   ```console
+   $ sudo chmod 600 /etc/systemd/system/ddns-update.service
+   ```
+
+3. Create the timer that runs this service:
+
+   ```
+   # /etc/systemd/system/ddns-update.timer
+
+   [Unit]
+   Description=Run DDNS update every 15 minutes
+   Requires=ddns-update.service
+
+   [Timer]
+   Unit=ddns-update.service
+   OnUnitInactiveSec=15m
+   AccuracySec=1s
+
+   [Install]
+   WantedBy=timers.target
+   ```
+
+4. Now we reload the daemon with the new services and start them:
+
+   ```console
+   $ sudo systemctl daemon-reload
+   $ sudo systemctl start ddns-update.service ddns-update.timer
+   ```
+
+You can view the logs from the service with the following command:
+
+```console
+$ sudo journalctl -u ddns-update.service
+```
+
 [cargo]: https://doc.rust-lang.org/cargo/
