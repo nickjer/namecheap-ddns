@@ -67,8 +67,6 @@ jobs:
           use-cross: true
           command: build
           args: --target ${{ matrix.target }} --release --jobs 2
-      - name: Compress asset
-        run: tar czf namecheap-ddns.tar.gz target/${{ matrix.target }}/release/namecheap-ddns
       - name: Download release URL file
         uses: actions/download-artifact@v1
         with:
@@ -82,6 +80,8 @@ jobs:
           TAG_REF_NAME: ${{ github.ref }}
           REPOSITORY_NAME: ${{ github.repository }}
           TARGET_NAME: ${{ matrix.target }}
+      - name: Compress asset
+        run: tar -C target/${{ matrix.target }}/release -czf namecheap-ddns.tar.gz namecheap-ddns
       - name: Upload artifact
         uses: actions/upload-release-asset@v1.0.1
         env:
