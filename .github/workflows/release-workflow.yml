@@ -80,6 +80,8 @@ jobs:
           TAG_REF_NAME: ${{ github.ref }}
           REPOSITORY_NAME: ${{ github.repository }}
           TARGET_NAME: ${{ matrix.target }}
+      - name: Strip symbols from asset
+        run: strip target/${{ matrix.target }}/release/namecheap-ddns
       - name: Compress asset
         run: tar -C target/${{ matrix.target }}/release -czf namecheap-ddns.tar.gz namecheap-ddns
       - name: Upload artifact
