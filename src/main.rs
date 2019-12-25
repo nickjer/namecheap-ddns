@@ -1,13 +1,13 @@
 #[macro_use]
 extern crate clap;
-extern crate url;
 extern crate minreq;
 extern crate quick_xml;
+extern crate url;
 
 use clap::{App, Arg};
-use url::Url;
-use quick_xml::Reader;
 use quick_xml::events::Event;
+use quick_xml::Reader;
+use url::Url;
 
 fn main() {
     let matches = App::new("namecheap-ddns")
@@ -86,7 +86,7 @@ fn main() {
                     b"IP" => {
                         let ip = reader.read_text(e.name(), &mut Vec::new()).unwrap();
                         println!("{}.{} IP address updated to: {}", subdomain, domain, ip);
-                    },
+                    }
                     b"Err1" => {
                         let error = reader.read_text(e.name(), &mut Vec::new()).unwrap();
                         eprintln!("ERROR: {}", error);
