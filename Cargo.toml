@@ -16,5 +16,4 @@ readme = "README.md"
 clap = "2"
 url = "2"
 minreq = { version = "2", features = ["https"] }
-serde = { version = "1", features = ["derive"] }
-quick-xml = { version = "0.17", features = ["serialize"] }
+quick-xml = "0.17"

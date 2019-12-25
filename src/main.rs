@@ -1,38 +1,13 @@
 #[macro_use]
 extern crate clap;
+extern crate url;
 extern crate minreq;
 extern crate quick_xml;
-extern crate serde;
-extern crate url;
 
 use clap::{App, Arg};
-use serde::Deserialize;
 use url::Url;
-
-#[derive(Debug, Deserialize)]
-struct Ip {
-    #[serde(rename = "$value")]
-    body: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct Error {
-    #[serde(rename = "$value")]
-    body: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct Errors {
-    #[serde(rename = "Err1")]
-    error: Error,
-}
-
-#[derive(Debug, Deserialize)]
-struct InterfaceResponse {
-    #[serde(rename = "IP")]
-    ip: Option<Ip>,
-    errors: Option<Errors>,
-}
+use quick_xml::Reader;
+use quick_xml::events::Event;
 
 fn main() {
     let matches = App::new("namecheap-ddns")
@@ -101,18 +76,28 @@ fn main() {
 
         let response = minreq::get(url.as_str()).with_timeout(10).send().unwrap();
         let body = response.as_str().unwrap();
-        let parsed_body: InterfaceResponse = quick_xml::de::from_str(&body).unwrap();
 
-        if let Some(errors) = parsed_body.errors {
-            eprintln!("ERROR: {}", errors.error.body);
-            std::process::exit(1);
+        let mut reader = Reader::from_str(&body);
+        reader.trim_text(true);
+
+        loop {
+            match reader.read_event(&mut Vec::new()) {
+                Ok(Event::Start(ref e)) => match e.name() {
+                    b"IP" => {
+                        let ip = reader.read_text(e.name(), &mut Vec::new()).unwrap();
+                        println!("{}.{} IP address updated to: {}", subdomain, domain, ip);
+                    },
+                    b"Err1" => {
+                        let error = reader.read_text(e.name(), &mut Vec::new()).unwrap();
+                        eprintln!("ERROR: {}", error);
+                        std::process::exit(1);
+                    }
+                    _ => (),
+                },
+                Ok(Event::Eof) => break,
+                Err(e) => panic!("Error at position {}: {:?}", reader.buffer_position(), e),
+                _ => (),
+            }
         }
-
-        println!(
-            "{}.{} IP address updated to: {}",
-            subdomain,
-            domain,
-            parsed_body.ip.unwrap().body
-        );
     }
 }
