@@ -1,12 +1,13 @@
 #[macro_use]
 extern crate clap;
+extern crate minreq;
 extern crate quick_xml;
-extern crate reqwest;
 extern crate serde;
+extern crate url;
 
 use clap::{App, Arg};
-use reqwest::Client;
 use serde::Deserialize;
+use url::Url;
 
 #[derive(Debug, Deserialize)]
 struct Ip {
@@ -88,22 +89,18 @@ fn main() {
         }
     };
 
-    let client = Client::new();
     for subdomain in subdomains {
-        let mut query = vec![
-            ("domain", domain),
-            ("host", subdomain),
-            ("password", &token),
-        ];
+        let mut url = Url::parse("https://dynamicdns.park-your-domain.com/update").unwrap();
+        url.query_pairs_mut()
+            .append_pair("domain", domain)
+            .append_pair("host", subdomain)
+            .append_pair("password", &token);
         if let Some(ip) = ip_option {
-            query.push(("ip", ip));
+            url.query_pairs_mut().append_pair("ip", ip);
         }
 
-        let response = client
-            .get("https://dynamicdns.park-your-domain.com/update")
-            .query(&query)
-            .send();
-        let body = response.unwrap().text().unwrap();
+        let response = minreq::get(url.as_str()).with_timeout(10).send().unwrap();
+        let body = response.as_str().unwrap();
         let parsed_body: InterfaceResponse = quick_xml::de::from_str(&body).unwrap();
 
         if let Some(errors) = parsed_body.errors {
