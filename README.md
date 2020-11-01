@@ -13,6 +13,12 @@ Install using [cargo]:
 cargo install namecheap-ddns
 ```
 
+## Pre-compiled Binaries
+
+An alternative method is to download and run the pre-compiled binaries:
+
+https://github.com/nickjer/namecheap-ddns/releases
+
 ## Usage
 
 Check the help (`--help`) for details on using this tool:
