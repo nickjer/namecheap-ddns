@@ -42,13 +42,13 @@ fn main() {
             .append_pair("host", &subdomain)
             .append_pair("password", &token);
         if let Some(ref ip) = cli.ip {
-            url.query_pairs_mut().append_pair("ip", &ip);
+            url.query_pairs_mut().append_pair("ip", ip);
         }
 
         let response = minreq::get(url.as_str()).with_timeout(10).send().unwrap();
         let body = response.as_str().unwrap();
 
-        let mut reader = Reader::from_str(&body);
+        let mut reader = Reader::from_str(body);
         reader.trim_text(true);
 
         loop {
