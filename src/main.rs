@@ -16,7 +16,13 @@ struct Cli {
     domain: String,
 
     /// The subdomain to update
-    #[clap(short, long, env = "NAMECHEAP_DDNS_SUBDOMAIN", required = true)]
+    #[clap(
+        short,
+        long,
+        env = "NAMECHEAP_DDNS_SUBDOMAIN",
+        required = true,
+        use_value_delimiter = true
+    )]
     subdomain: Vec<String>,
 
     /// The ip address to set on the subdomains (if blank the ip used to make
