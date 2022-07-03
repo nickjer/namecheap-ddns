@@ -24,22 +24,20 @@ https://github.com/nickjer/namecheap-ddns/releases
 Check the help (`--help`) for details on using this tool:
 
 ```shell
-namecheap-ddns 0.1.0
+namecheap-ddns 0.2.1
 Jeremy Nicklas <jeremywnicklas@gmail.com>
 Updates the A + Dynamic DNS records for Namecheap
 
 USAGE:
-    namecheap-ddns [OPTIONS] --domain <DOMAIN> --subdomain <SUBDOMAIN>...
-
-FLAGS:
-    -h, --help       Prints help information
-    -V, --version    Prints version information
+    namecheap-ddns [OPTIONS] --domain <DOMAIN> --subdomain <SUBDOMAIN>
 
 OPTIONS:
-    -d, --domain <DOMAIN>             The domain with subdomains [env: NAMECHEAP_DDNS_DOMAIN=]
-    -i, --ip <IP>                     The ip address to set on the subdomains (if blank the ip used to make this request
-                                      will be used) [env: NAMECHEAP_DDNS_IP=]
-    -s, --subdomain <SUBDOMAIN>...    The subdomain to update [env: NAMECHEAP_DDNS_SUBDOMAIN=]
+    -d, --domain <DOMAIN>          The domain with subdomains [env: NAMECHEAP_DDNS_DOMAIN=]
+    -h, --help                     Print help information
+    -i, --ip <IP>                  The ip address to set on the subdomains (if blank the ip used to
+                                   make this request will be used) [env: NAMECHEAP_DDNS_IP=]
+    -s, --subdomain <SUBDOMAIN>    The subdomain to update [env: NAMECHEAP_DDNS_SUBDOMAIN=]
+    -V, --version                  Print version information
 ```
 
 You will need to specify Namecheap's Dynamic DNS Password provided to you in
@@ -77,7 +75,7 @@ I want to use an environment variable file:
 $ cat .env
 export NAMECHEAP_DDNS_TOKEN=...
 export NAMECHEAP_DDNS_DOMAIN=example.com
-export NAMECHEAP_DDNS_SUBDOMAIN=host1
+export NAMECHEAP_DDNS_SUBDOMAIN=host1,host2
 export NAMECHEAP_DDNS_IP=321.321.321.321
 $ source .env
 $ namecheap-ddns
