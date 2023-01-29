@@ -17,27 +17,25 @@ cargo install namecheap-ddns
 
 An alternative method is to download and run the pre-compiled binaries:
 
-https://github.com/nickjer/namecheap-ddns/releases
+[releases]
 
 ## Usage
 
 Check the help (`--help`) for details on using this tool:
 
 ```shell
-namecheap-ddns 0.2.1
-Jeremy Nicklas <jeremywnicklas@gmail.com>
 Updates the A + Dynamic DNS records for Namecheap
 
-USAGE:
-    namecheap-ddns [OPTIONS] --domain <DOMAIN> --subdomain <SUBDOMAIN>
+Usage: namecheap-ddns [OPTIONS] --domain <DOMAIN> --subdomain <SUBDOMAIN>
 
-OPTIONS:
-    -d, --domain <DOMAIN>          The domain with subdomains [env: NAMECHEAP_DDNS_DOMAIN=]
-    -h, --help                     Print help information
-    -i, --ip <IP>                  The ip address to set on the subdomains (if blank the ip used to
-                                   make this request will be used) [env: NAMECHEAP_DDNS_IP=]
-    -s, --subdomain <SUBDOMAIN>    The subdomain to update [env: NAMECHEAP_DDNS_SUBDOMAIN=]
-    -V, --version                  Print version information
+Options:
+  -d, --domain <DOMAIN>        The domain with subdomains [env: NAMECHEAP_DDNS_DOMAIN=]
+  -s, --subdomain <SUBDOMAIN>  The subdomain to update [env: NAMECHEAP_DDNS_SUBDOMAIN=]
+  -i, --ip <IP>                The ip address to set on the subdomains (if
+                               blank the ip used to make this request will be
+                               used) [env: NAMECHEAP_DDNS_IP=]
+  -h, --help                   Print help
+  -V, --version                Print version
 ```
 
 You will need to specify Namecheap's Dynamic DNS Password provided to you in
@@ -114,8 +112,8 @@ and corresponding timer.
 2. Note that the super secret token is in this file, so we should set
    restrictive permissions:
 
-   ```console
-   $ sudo chmod 600 /etc/systemd/system/ddns-update.service
+   ```shell
+   sudo chmod 600 /etc/systemd/system/ddns-update.service
    ```
 
 3. Create the timer that runs this service:
@@ -138,15 +136,16 @@ and corresponding timer.
 
 4. Now we reload the daemon with the new services and start them:
 
-   ```console
-   $ sudo systemctl daemon-reload
-   $ sudo systemctl start ddns-update.service ddns-update.timer
+   ```shell
+   sudo systemctl daemon-reload
+   sudo systemctl start ddns-update.service ddns-update.timer
    ```
 
 You can view the logs from the service with the following command:
 
-```console
-$ sudo journalctl -u ddns-update.service
+```shell
+sudo journalctl -u ddns-update.service
 ```
 
 [cargo]: https://doc.rust-lang.org/cargo/
+[releases]: https://github.com/nickjer/namecheap-ddns/releases

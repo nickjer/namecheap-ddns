@@ -58,14 +58,14 @@ fn main() {
         reader.trim_text(true);
 
         loop {
-            match reader.read_event(&mut Vec::new()) {
-                Ok(Event::Start(ref e)) => match e.name() {
+            match reader.read_event_into(&mut Vec::new()) {
+                Ok(Event::Start(ref e)) => match e.name().as_ref() {
                     b"IP" => {
-                        let ip = reader.read_text(e.name(), &mut Vec::new()).unwrap();
+                        let ip = reader.read_text(e.name()).unwrap();
                         println!("{subdomain}.{domain} IP address updated to: {ip}");
                     }
                     b"Err1" => {
-                        let error = reader.read_text(e.name(), &mut Vec::new()).unwrap();
+                        let error = reader.read_text(e.name()).unwrap();
                         eprintln!("ERROR: {error}");
                         std::process::exit(1);
                     }
