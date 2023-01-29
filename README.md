@@ -15,9 +15,7 @@ cargo install namecheap-ddns
 
 ## Pre-compiled Binaries
 
-An alternative method is to download and run the pre-compiled binaries:
-
-[releases]
+An alternative method is to download and run the [pre-compiled binaries].
 
 ## Usage
 
@@ -148,4 +146,4 @@ sudo journalctl -u ddns-update.service
 ```
 
 [cargo]: https://doc.rust-lang.org/cargo/
-[releases]: https://github.com/nickjer/namecheap-ddns/releases
+[pre-compiled binaries]: https://github.com/nickjer/namecheap-ddns/releases
