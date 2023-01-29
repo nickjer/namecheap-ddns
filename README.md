@@ -5,17 +5,18 @@
 A command line interface (CLI) used to update the A + Dynamic DNS records for
 Namecheap.
 
+## Pre-compiled Binaries
+
+You can download and run the [pre-compiled binaries] to get up and running
+immediately.
+
 ## Installation
 
-Install using [cargo]:
+An alternative is to install using [cargo]:
 
 ```shell
 cargo install namecheap-ddns
 ```
-
-## Pre-compiled Binaries
-
-An alternative method is to download and run the [pre-compiled binaries].
 
 ## Usage
 
