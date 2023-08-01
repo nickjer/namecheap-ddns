@@ -16,7 +16,7 @@ readme = "README.md"
 clap = { version = "4", features = ["derive", "env"] }
 url = "2"
 minreq = { version = "2", features = ["https"] }
-quick-xml = "0.27"
+quick-xml = "0.30"
 
 [profile.release]
 lto = true
