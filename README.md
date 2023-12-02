@@ -25,7 +25,7 @@ Check the help (`--help`) for details on using this tool:
 ```shell
 Updates the A + Dynamic DNS records for Namecheap
 
-Usage: namecheap-ddns [OPTIONS] --domain <DOMAIN> --subdomain <SUBDOMAIN>
+Usage: namecheap-ddns [OPTIONS] --domain <DOMAIN> --subdomain <SUBDOMAIN> --token <TOKEN>
 
 Options:
   -d, --domain <DOMAIN>        The domain with subdomains [env: NAMECHEAP_DDNS_DOMAIN=]
@@ -33,6 +33,7 @@ Options:
   -i, --ip <IP>                The ip address to set on the subdomains (if
                                blank the ip used to make this request will be
                                used) [env: NAMECHEAP_DDNS_IP=]
+  -t, --token <TOKEN>          The secret token [env: NAMECHEAP_DDNS_TOKEN=]
   -h, --help                   Print help
   -V, --version                Print version
 ```
