@@ -3,10 +3,41 @@ extern crate minreq;
 extern crate quick_xml;
 extern crate url;
 
+use anyhow::{anyhow, Context, Result};
 use clap::Parser;
-use quick_xml::events::Event;
-use quick_xml::Reader;
+use quick_xml::de::from_str;
+use serde::Deserialize;
 use url::Url;
+
+const API_URL: &str = "https://dynamicdns.park-your-domain.com/update";
+
+#[derive(Debug, Deserialize)]
+struct ErrorList {
+    #[serde(rename = "$value", default)]
+    errors: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct Response {
+    #[serde(rename = "IP")]
+    ip: Option<String>,
+
+    #[serde(rename = "ErrCount")]
+    err_count: u8,
+
+    #[serde(rename = "errors")]
+    error_list: ErrorList,
+}
+
+impl Response {
+    fn success(&self) -> bool {
+        self.err_count == 0
+    }
+
+    fn error(&self) -> Option<String> {
+        self.error_list.errors.first().cloned()
+    }
+}
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
@@ -29,52 +60,49 @@ struct Cli {
     /// this request will be used)
     #[clap(short, long, env = "NAMECHEAP_DDNS_IP")]
     ip: Option<String>,
+
+    /// The secret token
+    #[clap(short, long, env = "NAMECHEAP_DDNS_TOKEN")]
+    token: String,
 }
 
-fn main() {
-    let cli = Cli::parse();
+fn update(domain: &str, subdomain: &str, token: &str, ip: Option<&str>) -> Result<()> {
+    let mut url = Url::parse(API_URL)?;
+    url.query_pairs_mut()
+        .append_pair("domain", domain)
+        .append_pair("host", subdomain)
+        .append_pair("password", token);
+    if let Some(ip) = ip {
+        url.query_pairs_mut().append_pair("ip", ip);
+    }
 
-    let token_env = "NAMECHEAP_DDNS_TOKEN";
-    let token = std::env::var(token_env).unwrap_or_else(|error| {
-        eprintln!("ERROR: {error} for {token_env}");
-        std::process::exit(1);
-    });
+    let response = minreq::get(url.as_str()).with_timeout(10).send()?;
+    let body: Response = from_str(response.as_str()?)?;
+
+    if body.success() {
+        match body.ip {
+            Some(ip) => {
+                println!("{subdomain}.{domain} IP address updated to: {ip}");
+                Ok(())
+            }
+            None => Err(anyhow!("Missing IP address in response"))
+        }
+    } else {
+        match body.error() {
+            Some(error) => Err(anyhow!("{error}")),
+            None => Err(anyhow!("Failed with unknown error")),
+        }
+    }
+}
+
+fn main() -> Result<()> {
+    let cli = Cli::parse();
 
     let domain = cli.domain.clone();
     for subdomain in cli.subdomain {
-        let mut url = Url::parse("https://dynamicdns.park-your-domain.com/update").unwrap();
-        url.query_pairs_mut()
-            .append_pair("domain", &domain)
-            .append_pair("host", &subdomain)
-            .append_pair("password", &token);
-        if let Some(ref ip) = cli.ip {
-            url.query_pairs_mut().append_pair("ip", ip);
-        }
-
-        let response = minreq::get(url.as_str()).with_timeout(10).send().unwrap();
-        let body = response.as_str().unwrap();
-
-        let mut reader = Reader::from_str(body);
-        reader.trim_text(true);
-
-        loop {
-            match reader.read_event_into(&mut Vec::new()) {
-                Ok(Event::Start(ref e)) => match e.name().as_ref() {
-                    b"IP" => {
-                        let ip = reader.read_text(e.name()).unwrap();
-                        println!("{subdomain}.{domain} IP address updated to: {ip}");
-                    }
-                    b"Err1" => {
-                        let error = reader.read_text(e.name()).unwrap();
-                        eprintln!("ERROR: {error}");
-                        std::process::exit(1);
-                    }
-                    _ => (),
-                },
-                Ok(Event::Eof) => break,
-                Err(e) => panic!("Error at position {}: {:?}", reader.buffer_position(), e),
-                _ => (),
-            }
-        }
+        update(&domain, &subdomain, &cli.token, cli.ip.as_deref())
+            .with_context(|| format!("Failed to update {subdomain}.{domain}"))?;
     }
+
+    Ok(())
 }
