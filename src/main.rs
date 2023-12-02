@@ -85,7 +85,7 @@ fn update(domain: &str, subdomain: &str, token: &str, ip: Option<&str>) -> Resul
                 println!("{subdomain}.{domain} IP address updated to: {ip}");
                 Ok(())
             }
-            None => Err(anyhow!("Missing IP address in response"))
+            None => Err(anyhow!("Missing IP address in response")),
         }
     } else {
         match body.error() {
