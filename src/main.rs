@@ -76,7 +76,10 @@ fn update(domain: &str, subdomain: &str, token: &str, ip: Option<&str>) -> Resul
         url.query_pairs_mut().append_pair("ip", ip);
     }
 
-    let response = minreq::get(url.as_str()).with_timeout(10).send()?;
+    let response = minreq::get(url.as_str())
+        .with_timeout(10)
+        .send()
+        .with_context(|| format!("Failed to connect to {API_URL}"))?;
     let body: Response = from_str(response.as_str()?)?;
 
     if body.success() {
