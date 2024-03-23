@@ -32,15 +32,11 @@ jobs:
           command: build
           args: --target ${{ matrix.target }} --release --jobs 2
       - name: Compress asset
-        run: >-
-          tar -C target/${{ matrix.target }}/release
-            -czf ${REPOSITORY_NAME##*/}-${TAG_REF_NAME#refs/tags/}-${TARGET_NAME}.tar.gz
+        run: |
+          tar -C target/${{ matrix.target }}/release \
+            -czf "namecheap-ddns-${{ github.ref_name }}-${{ matrix.target }}.tar.gz" \
             namecheap-ddns
-        env:
-          REPOSITORY_NAME: ${{ github.repository }}
-          TAG_REF_NAME: ${{ github.ref }}
-          TARGET_NAME: ${{ matrix.target }}
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          files: "target/*/*.tar.gz"
+          files: "namecheap-ddns-*.tar.gz"
