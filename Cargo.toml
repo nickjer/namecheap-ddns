@@ -1,7 +1,7 @@
 [package]
 name = "namecheap-ddns"
 description = "Updates the A + Dynamic DNS records for Namecheap"
-version = "0.3.1"
+version = "0.3.2"
 authors = ["Jeremy Nicklas <jeremywnicklas@gmail.com>"]
 edition = "2021"
 license = "MIT"
