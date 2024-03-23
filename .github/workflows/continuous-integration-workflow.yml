@@ -12,7 +12,7 @@ jobs:
           - x86_64-unknown-linux-musl
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/bin/
@@ -49,7 +49,7 @@ jobs:
       - name: Rename binary
         run: mv target/${{ matrix.target }}/debug/namecheap-ddns namecheap-ddns-${{ github.sha }}-${{ matrix.target }}
       - name: Upload artifact
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
           name: namecheap-ddns
           path: namecheap-ddns-${{ github.sha }}-${{ matrix.target }}
