@@ -8,12 +8,19 @@ on:
 jobs:
   release:
     name: Create release
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        target:
-          - x86_64-unknown-linux-gnu
-          - x86_64-unknown-linux-musl
+        include:
+          - build: linux
+            os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - build: linux
+            os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+          - build: macos
+            os: macos-latest
+            target: x86_64-apple-darwin
     steps:
       - uses: actions/checkout@v4
       - uses: actions/cache@v4
@@ -25,18 +32,24 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ runner.os }}-${{ matrix.target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-      - name: Cargo build
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - name: Build
         uses: actions-rs/cargo@v1
         with:
           use-cross: true
           command: build
-          args: --target ${{ matrix.target }} --release --jobs 2
-      - name: Compress asset
+          args: --target ${{ matrix.target }} --release
+      - name: Build archive
         run: |
-          tar -C target/${{ matrix.target }}/release \
-            -czf "namecheap-ddns-${{ github.ref_name }}-${{ matrix.target }}.tar.gz" \
-            namecheap-ddns
+          binary_name="namecheap-ddns"
+          archive_name="$binary_name-${{ github.ref_name }}-${{ matrix.target }}.tar.gz"
+
+          tar -C "target/${{ matrix.target }}/release" \
+            -czf "$archive_name" "$binary_name"
+          echo "ASSET=$archive_name" >> $GITHUB_ENV
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          files: "namecheap-ddns-*.tar.gz"
+          files: "${{ env.ASSET }}"
