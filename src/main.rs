@@ -3,7 +3,7 @@ extern crate minreq;
 extern crate quick_xml;
 extern crate url;
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use clap::Parser;
 use quick_xml::de::from_str;
 use serde::Deserialize;
