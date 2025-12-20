@@ -5,6 +5,7 @@ use serde::Deserialize;
 use url::Url;
 
 const API_URL: &str = "https://dynamicdns.park-your-domain.com/update";
+const REQUEST_TIMEOUT_SECS: u64 = 10;
 
 #[derive(Debug, Deserialize)]
 struct ErrorList {
@@ -18,7 +19,7 @@ struct Response {
     ip: Option<String>,
 
     #[serde(rename = "ErrCount")]
-    err_count: u8,
+    err_count: u32,
 
     #[serde(rename = "errors")]
     error_list: ErrorList,
@@ -37,7 +38,7 @@ impl Response {
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Cli {
-    /// The domain with subdomains
+    /// The root domain (e.g., example.com)
     #[clap(short, long, env = "NAMECHEAP_DDNS_DOMAIN")]
     domain: String,
 
@@ -82,24 +83,23 @@ fn update(
     }
 
     let response = minreq::get(url.as_str())
-        .with_timeout(10)
+        .with_timeout(REQUEST_TIMEOUT_SECS)
         .send()
         .with_context(|| format!("Failed to connect to {api_url}"))?;
-    let body: Response = from_str(response.as_str()?)?;
+    let body: Response =
+        from_str(response.as_str()?).with_context(|| "Failed to parse API response")?;
 
     if body.success() {
-        match body.ip {
-            Some(ip) => {
-                println!("{subdomain}.{domain} IP address updated to: {ip}");
-                Ok(())
-            }
-            None => Err(anyhow!("Missing IP address in response")),
-        }
+        let ip = body
+            .ip
+            .ok_or_else(|| anyhow!("Missing IP address in response"))?;
+        println!("{subdomain}.{domain} IP address updated to: {ip}");
+        Ok(())
     } else {
-        match body.error() {
-            Some(error) => Err(anyhow!("{error}")),
-            None => Err(anyhow!("Failed with unknown error")),
-        }
+        let error = body
+            .error()
+            .unwrap_or_else(|| "Failed with unknown error".to_string());
+        Err(anyhow!("{error}"))
     }
 }
 

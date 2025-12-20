@@ -64,6 +64,36 @@ fn multiple_errors_response() -> String {
         .to_string()
 }
 
+fn success_response_missing_ip() -> String {
+    r#"<?xml version="1.0" encoding="utf-16"?>
+        <interface-response>
+            <Command>SETDNSHOST</Command>
+            <Language>eng</Language>
+            <ErrCount>0</ErrCount>
+            <errors />
+            <ResponseCount>0</ResponseCount>
+            <responses />
+            <Done>true</Done>
+            <debug><![CDATA[]]></debug>
+        </interface-response>"#
+        .to_string()
+}
+
+fn error_response_missing_message() -> String {
+    r#"<?xml version="1.0" encoding="utf-16"?>
+        <interface-response>
+            <Command>SETDNSHOST</Command>
+            <Language>eng</Language>
+            <ErrCount>1</ErrCount>
+            <errors />
+            <ResponseCount>0</ResponseCount>
+            <responses />
+            <Done>true</Done>
+            <debug><![CDATA[]]></debug>
+        </interface-response>"#
+        .to_string()
+}
+
 #[test]
 fn missing_required_domain() {
     Command::new(cargo::cargo_bin!("namecheap-ddns"))
@@ -301,4 +331,82 @@ async fn env_var_configuration() {
         .stdout(predicate::str::contains(
             "test.env.example.com IP address updated to: 1.2.3.4",
         ));
+}
+
+#[async_std::test]
+async fn api_success_but_missing_ip() {
+    let mock_server = MockServer::start().await;
+
+    Mock::given(method("GET"))
+        .and(path("/update"))
+        .respond_with(ResponseTemplate::new(200).set_body_string(success_response_missing_ip()))
+        .mount(&mock_server)
+        .await;
+
+    Command::new(cargo::cargo_bin!("namecheap-ddns"))
+        .args([
+            "--api-url",
+            &format!("{}/update", mock_server.uri()),
+            "--domain",
+            "example.com",
+            "--subdomain",
+            "test",
+            "--token",
+            "secret",
+        ])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("Missing IP address in response"));
+}
+
+#[async_std::test]
+async fn api_error_but_missing_message() {
+    let mock_server = MockServer::start().await;
+
+    Mock::given(method("GET"))
+        .and(path("/update"))
+        .respond_with(ResponseTemplate::new(200).set_body_string(error_response_missing_message()))
+        .mount(&mock_server)
+        .await;
+
+    Command::new(cargo::cargo_bin!("namecheap-ddns"))
+        .args([
+            "--api-url",
+            &format!("{}/update", mock_server.uri()),
+            "--domain",
+            "example.com",
+            "--subdomain",
+            "test",
+            "--token",
+            "secret",
+        ])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("Failed with unknown error"));
+}
+
+#[async_std::test]
+async fn api_malformed_response() {
+    let mock_server = MockServer::start().await;
+
+    Mock::given(method("GET"))
+        .and(path("/update"))
+        .respond_with(ResponseTemplate::new(200).set_body_string("not valid xml"))
+        .mount(&mock_server)
+        .await;
+
+    Command::new(cargo::cargo_bin!("namecheap-ddns"))
+        .args([
+            "--api-url",
+            &format!("{}/update", mock_server.uri()),
+            "--domain",
+            "example.com",
+            "--subdomain",
+            "test",
+            "--token",
+            "secret",
+        ])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("Failed to parse API response"));
 }
