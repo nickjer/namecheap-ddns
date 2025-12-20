@@ -86,8 +86,7 @@ fn update(
         .with_timeout(REQUEST_TIMEOUT_SECS)
         .send()
         .with_context(|| format!("Failed to connect to {api_url}"))?;
-    let body: Response =
-        from_str(response.as_str()?).with_context(|| "Failed to parse API response")?;
+    let body: Response = from_str(response.as_str()?).context("Failed to parse API response")?;
 
     if body.success() {
         let ip = body
