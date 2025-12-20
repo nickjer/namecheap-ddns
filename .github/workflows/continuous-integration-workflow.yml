@@ -8,15 +8,26 @@ jobs:
     strategy:
       matrix:
         include:
-          - build: linux
+          - build: linux-gnu
             os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-          - build: linux
+            cross: false
+          - build: linux-musl
             os: ubuntu-latest
             target: x86_64-unknown-linux-musl
-          - build: macos
+            cross: true
+          - build: linux-arm64
+            os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            cross: true
+          - build: macos-x86
             os: macos-latest
             target: x86_64-apple-darwin
+            cross: false
+          - build: macos-arm64
+            os: macos-latest
+            target: aarch64-apple-darwin
+            cross: false
     steps:
       - uses: actions/checkout@v6
       - uses: actions/cache@v5
@@ -31,25 +42,28 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
-          components: rustfmt
-      - name: Cargo build
-        uses: actions-rs/cargo@v1
-        with:
-          use-cross: true
-          command: build
-          args: --target ${{ matrix.target }}
-      - name: Cargo test
-        uses: actions-rs/cargo@v1
-        with:
-          use-cross: true
-          command: test
-          args: --target ${{ matrix.target }}
-      - name: Cargo fmt
-        uses: actions-rs/cargo@v1
-        with:
-          use-cross: true
-          command: fmt
-          args: --all -- --check
+          components: rustfmt, clippy
+      - name: Install cross
+        if: matrix.cross
+        run: cargo install cross --git https://github.com/cross-rs/cross
+      - name: Build
+        run: |
+          if [ "${{ matrix.cross }}" = "true" ]; then
+            cross build --target ${{ matrix.target }}
+          else
+            cargo build --target ${{ matrix.target }}
+          fi
+      - name: Test
+        run: |
+          if [ "${{ matrix.cross }}" = "true" ]; then
+            cross test --target ${{ matrix.target }}
+          else
+            cargo test --target ${{ matrix.target }}
+          fi
+      - name: Clippy
+        run: cargo clippy --target ${{ matrix.target }} -- -D warnings
+      - name: Format check
+        run: cargo fmt --all -- --check
       - name: Rename binary
         run: mv target/${{ matrix.target }}/debug/namecheap-ddns namecheap-ddns-${{ github.sha }}-${{ matrix.target }}
       - name: Upload artifact

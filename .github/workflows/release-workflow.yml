@@ -3,24 +3,35 @@ name: Release
 on:
   push:
     tags:
-      - 'v*' # Push events to matching v*, i.e., v1.0
+      - 'v*'
 
 jobs:
-  release:
-    name: Create release
+  build:
+    name: Build release binaries
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         include:
-          - build: linux
+          - build: linux-gnu
             os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-          - build: linux
+            cross: false
+          - build: linux-musl
             os: ubuntu-latest
             target: x86_64-unknown-linux-musl
-          - build: macos
+            cross: true
+          - build: linux-arm64
+            os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            cross: true
+          - build: macos-x86
             os: macos-latest
             target: x86_64-apple-darwin
+            cross: false
+          - build: macos-arm64
+            os: macos-latest
+            target: aarch64-apple-darwin
+            cross: false
     steps:
       - uses: actions/checkout@v6
       - uses: actions/cache@v5
@@ -35,12 +46,16 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
+      - name: Install cross
+        if: matrix.cross
+        run: cargo install cross --git https://github.com/cross-rs/cross
       - name: Build
-        uses: actions-rs/cargo@v1
-        with:
-          use-cross: true
-          command: build
-          args: --target ${{ matrix.target }} --release
+        run: |
+          if [ "${{ matrix.cross }}" = "true" ]; then
+            cross build --target ${{ matrix.target }} --release
+          else
+            cargo build --target ${{ matrix.target }} --release
+          fi
       - name: Build archive
         run: |
           binary_name="namecheap-ddns"
@@ -49,7 +64,29 @@ jobs:
           tar -C "target/${{ matrix.target }}/release" \
             -czf "$archive_name" "$binary_name"
           echo "ASSET=$archive_name" >> $GITHUB_ENV
+      - name: Upload artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: ${{ env.ASSET }}
+          path: ${{ env.ASSET }}
+
+  release:
+    name: Create release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+      - name: Generate checksums
+        run: |
+          cd artifacts
+          sha256sum *.tar.gz > checksums-sha256.txt
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          files: "${{ env.ASSET }}"
+          files: |
+            artifacts/*.tar.gz
+            artifacts/checksums-sha256.txt
