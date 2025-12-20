@@ -25,7 +25,7 @@ cargo install namecheap-ddns
 
 Check the help (`--help`) for details on using this tool:
 
-```shell
+```text
 Updates the A + Dynamic DNS records for Namecheap
 
 Usage: namecheap-ddns [OPTIONS] --domain <DOMAIN> --subdomain <SUBDOMAIN> --token <TOKEN>
@@ -42,9 +42,7 @@ Options:
   -V, --version                Print version
 ```
 
-You will need to specify Namecheap's Dynamic DNS Password provided to you in
-their Advanced DNS control panel as the environment variable
-`NAMECHEAP_DDNS_TOKEN`.
+Set `NAMECHEAP_DDNS_TOKEN` to the Dynamic DNS Password from Namecheap's Advanced DNS control panel.
 
 > *Tip:* This is not your Namecheap login password.
 
@@ -64,7 +62,7 @@ given ip address:
 ```console
 $ NAMECHEAP_DDNS_TOKEN=... namecheap-ddns \
 >     -d example.com \
->     -s host1 -s host2 -s host3
+>     -s host1 -s host2 -s host3 \
 >     -i 123.123.123.123
 host1.example.com IP address updated to: 123.123.123.123
 host2.example.com IP address updated to: 123.123.123.123
@@ -78,10 +76,10 @@ $ cat .env
 export NAMECHEAP_DDNS_TOKEN=...
 export NAMECHEAP_DDNS_DOMAIN=example.com
 export NAMECHEAP_DDNS_SUBDOMAIN=host1,host2
-export NAMECHEAP_DDNS_IP=321.321.321.321
+export NAMECHEAP_DDNS_IP=123.123.123.123
 $ source .env
 $ namecheap-ddns
-host1.example.com IP address updated to: 321.321.321.321
+host1.example.com IP address updated to: 123.123.123.123
 ```
 
 ## Linux - systemd
@@ -142,8 +140,11 @@ and corresponding timer.
 
    ```shell
    sudo systemctl daemon-reload
-   sudo systemctl start ddns-update.service ddns-update.timer
+   sudo systemctl enable --now ddns-update.timer
    ```
+
+   The `enable` flag ensures the timer starts automatically on boot, and
+   `--now` starts it immediately.
 
 You can view the logs from the service with the following command:
 
