@@ -63,7 +63,12 @@ jobs:
             cargo test --target ${{ matrix.target }}
           fi
       - name: Clippy
-        run: cargo clippy --target ${{ matrix.target }} -- -D warnings
+        run: |
+          if [ "${{ matrix.cross }}" = "true" ]; then
+            cross clippy --target ${{ matrix.target }} -- -D warnings
+          else
+            cargo clippy --target ${{ matrix.target }} -- -D warnings
+          fi
       - name: Format check
         run: cargo fmt --all -- --check
       - name: Rename binary
