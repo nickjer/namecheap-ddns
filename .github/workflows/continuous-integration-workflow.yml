@@ -11,23 +11,18 @@ jobs:
           - build: linux-gnu
             os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            cross: false
           - build: linux-musl
             os: ubuntu-latest
             target: x86_64-unknown-linux-musl
-            cross: true
           - build: linux-arm64
-            os: ubuntu-latest
+            os: ubuntu-24.04-arm
             target: aarch64-unknown-linux-gnu
-            cross: true
           - build: macos-x86
             os: macos-latest
             target: x86_64-apple-darwin
-            cross: false
           - build: macos-arm64
             os: macos-latest
             target: aarch64-apple-darwin
-            cross: false
     steps:
       - uses: actions/checkout@v6
       - uses: actions/cache@v5
@@ -45,30 +40,15 @@ jobs:
         with:
           targets: ${{ matrix.target }}
           components: rustfmt, clippy
-      - name: Install cross
-        if: matrix.cross
-        run: cargo install cross --git https://github.com/cross-rs/cross
+      - name: Install musl-tools
+        if: matrix.target == 'x86_64-unknown-linux-musl'
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
       - name: Build
-        run: |
-          if [ "${{ matrix.cross }}" = "true" ]; then
-            cross build --target ${{ matrix.target }}
-          else
-            cargo build --target ${{ matrix.target }}
-          fi
+        run: cargo build --target ${{ matrix.target }}
       - name: Test
-        run: |
-          if [ "${{ matrix.cross }}" = "true" ]; then
-            cross test --target ${{ matrix.target }}
-          else
-            cargo test --target ${{ matrix.target }}
-          fi
+        run: cargo test --target ${{ matrix.target }}
       - name: Clippy
-        run: |
-          if [ "${{ matrix.cross }}" = "true" ]; then
-            cross clippy --target ${{ matrix.target }} -- -D warnings
-          else
-            cargo clippy --target ${{ matrix.target }} -- -D warnings
-          fi
+        run: cargo clippy --target ${{ matrix.target }} -- -D warnings
       - name: Format check
         run: cargo fmt --all -- --check
       - name: Rename binary
