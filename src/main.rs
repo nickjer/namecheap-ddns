@@ -59,10 +59,20 @@ struct Cli {
     /// The secret token
     #[clap(short, long, env = "NAMECHEAP_DDNS_TOKEN")]
     token: String,
+
+    /// The API URL
+    #[clap(long, env = "NAMECHEAP_DDNS_API_URL", default_value = API_URL)]
+    api_url: String,
 }
 
-fn update(domain: &str, subdomain: &str, token: &str, ip: Option<&str>) -> Result<()> {
-    let mut url = Url::parse(API_URL)?;
+fn update(
+    api_url: &str,
+    domain: &str,
+    subdomain: &str,
+    token: &str,
+    ip: Option<&str>,
+) -> Result<()> {
+    let mut url = Url::parse(api_url)?;
     url.query_pairs_mut()
         .append_pair("domain", domain)
         .append_pair("host", subdomain)
@@ -74,7 +84,7 @@ fn update(domain: &str, subdomain: &str, token: &str, ip: Option<&str>) -> Resul
     let response = minreq::get(url.as_str())
         .with_timeout(10)
         .send()
-        .with_context(|| format!("Failed to connect to {API_URL}"))?;
+        .with_context(|| format!("Failed to connect to {api_url}"))?;
     let body: Response = from_str(response.as_str()?)?;
 
     if body.success() {
@@ -97,9 +107,117 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
 
     for subdomain in &cli.subdomain {
-        update(&cli.domain, subdomain, &cli.token, cli.ip.as_deref())
-            .with_context(|| format!("Failed to update {subdomain}.{}", cli.domain))?;
+        update(
+            &cli.api_url,
+            &cli.domain,
+            subdomain,
+            &cli.token,
+            cli.ip.as_deref(),
+        )
+        .with_context(|| format!("Failed to update {subdomain}.{}", cli.domain))?;
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn response_success_when_no_errors() {
+        let response = Response {
+            ip: Some("1.2.3.4".to_string()),
+            err_count: 0,
+            error_list: ErrorList { errors: vec![] },
+        };
+        assert!(response.success());
+    }
+
+    #[test]
+    fn response_not_success_when_errors() {
+        let response = Response {
+            ip: None,
+            err_count: 1,
+            error_list: ErrorList {
+                errors: vec!["Some error".to_string()],
+            },
+        };
+        assert!(!response.success());
+    }
+
+    #[test]
+    fn response_error_returns_first_error() {
+        let response = Response {
+            ip: None,
+            err_count: 2,
+            error_list: ErrorList {
+                errors: vec!["First error".to_string(), "Second error".to_string()],
+            },
+        };
+        assert_eq!(response.error(), Some("First error".to_string()));
+    }
+
+    #[test]
+    fn response_error_returns_none_when_empty() {
+        let response = Response {
+            ip: None,
+            err_count: 0,
+            error_list: ErrorList { errors: vec![] },
+        };
+        assert_eq!(response.error(), None);
+    }
+
+    #[test]
+    fn parse_success_response() {
+        let xml = r#"
+            <?xml version="1.0" encoding="utf-16"?>
+            <interface-response>
+                <Command>SETDNSHOST</Command>
+                <Language>eng</Language>
+                <IP>1.2.3.4</IP>
+                <ErrCount>0</ErrCount>
+                <errors />
+                <ResponseCount>0</ResponseCount>
+                <responses />
+                <Done>true</Done>
+                <debug><![CDATA[]]></debug>
+            </interface-response>
+        "#;
+
+        let response: Response = from_str(xml).unwrap();
+        assert!(response.success());
+        assert_eq!(response.ip, Some("1.2.3.4".to_string()));
+        assert_eq!(response.error(), None);
+    }
+
+    #[test]
+    fn parse_error_response() {
+        let xml = r#"
+            <?xml version="1.0" encoding="utf-16"?>
+            <interface-response>
+                <Command>SETDNSHOST</Command>
+                <Language>eng</Language>
+                <ErrCount>1</ErrCount>
+                <errors>
+                    <Err1>Passwords do not match</Err1>
+                </errors>
+                <ResponseCount>1</ResponseCount>
+                <responses>
+                    <response>
+                        <Description>Passwords do not match</Description>
+                        <ResponseNumber>304156</ResponseNumber>
+                        <ResponseString>Validation error; invalid ; password</ResponseString>
+                    </response>
+                </responses>
+                <Done>true</Done>
+                <debug><![CDATA[]]></debug>
+            </interface-response>
+        "#;
+
+        let response: Response = from_str(xml).unwrap();
+        assert!(!response.success());
+        assert_eq!(response.ip, None);
+        assert_eq!(response.error(), Some("Passwords do not match".to_string()));
+    }
 }

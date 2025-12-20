@@ -33,10 +33,11 @@ Usage: namecheap-ddns [OPTIONS] --domain <DOMAIN> --subdomain <SUBDOMAIN> --toke
 Options:
   -d, --domain <DOMAIN>        The domain with subdomains [env: NAMECHEAP_DDNS_DOMAIN=]
   -s, --subdomain <SUBDOMAIN>  The subdomain to update [env: NAMECHEAP_DDNS_SUBDOMAIN=]
-  -i, --ip <IP>                The ip address to set on the subdomains (if
-                               blank the ip used to make this request will be
-                               used) [env: NAMECHEAP_DDNS_IP=]
+  -i, --ip <IP>                The ip address to set on the subdomains (if blank the ip used to
+                               make this request will be used) [env: NAMECHEAP_DDNS_IP=]
   -t, --token <TOKEN>          The secret token [env: NAMECHEAP_DDNS_TOKEN=]
+      --api-url <API_URL>      The API URL [env: NAMECHEAP_DDNS_API_URL=]
+                               [default: https://dynamicdns.park-your-domain.com/update]
   -h, --help                   Print help
   -V, --version                Print version
 ```
