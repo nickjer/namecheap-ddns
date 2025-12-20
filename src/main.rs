@@ -1,8 +1,3 @@
-extern crate clap;
-extern crate minreq;
-extern crate quick_xml;
-extern crate url;
-
 use anyhow::{Context, Result, anyhow};
 use clap::Parser;
 use quick_xml::de::from_str;
@@ -101,10 +96,9 @@ fn update(domain: &str, subdomain: &str, token: &str, ip: Option<&str>) -> Resul
 fn main() -> Result<()> {
     let cli = Cli::parse();
 
-    let domain = cli.domain.clone();
-    for subdomain in cli.subdomain {
-        update(&domain, &subdomain, &cli.token, cli.ip.as_deref())
-            .with_context(|| format!("Failed to update {subdomain}.{domain}"))?;
+    for subdomain in &cli.subdomain {
+        update(&cli.domain, subdomain, &cli.token, cli.ip.as_deref())
+            .with_context(|| format!("Failed to update {subdomain}.{}", cli.domain))?;
     }
 
     Ok(())
