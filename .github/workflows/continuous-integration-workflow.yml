@@ -18,8 +18,8 @@ jobs:
             os: macos-latest
             target: x86_64-apple-darwin
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/cache@v4
+      - uses: actions/checkout@v6
+      - uses: actions/cache@v5
         with:
           path: |
             ~/.cargo/bin/
@@ -53,7 +53,7 @@ jobs:
       - name: Rename binary
         run: mv target/${{ matrix.target }}/debug/namecheap-ddns namecheap-ddns-${{ github.sha }}-${{ matrix.target }}
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: namecheap-ddns-${{ matrix.target }}
           path: namecheap-ddns-${{ github.sha }}-${{ matrix.target }}
