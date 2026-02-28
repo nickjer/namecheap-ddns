@@ -54,7 +54,7 @@ jobs:
       - name: Rename binary
         run: mv target/${{ matrix.target }}/debug/namecheap-ddns namecheap-ddns-${{ github.sha }}-${{ matrix.target }}
       - name: Upload artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: namecheap-ddns-${{ matrix.target }}
           path: namecheap-ddns-${{ github.sha }}-${{ matrix.target }}
